@@ -4,12 +4,9 @@
          racket/contract
          racket/generic)
 
-(provide gen:functor functor? functor/c map
-         (contract-out [ignore (functor? . -> . functor?)]))
+(provide gen:functor functor? functor/c map)
 
 (define-generics functor
   (map f functor)
   #:defaults
   ([c:sequence? (define map c:map)]))
-
-(define ignore #{map void})

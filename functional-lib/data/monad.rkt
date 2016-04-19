@@ -5,7 +5,6 @@
          racket/generic
          racket/lazy-require
          syntax/parse/define
-         (only-in "functor.rkt" ignore)
          (for-syntax racket/base))
 
 (lazy-require ["applicative.rkt" (pure)]
