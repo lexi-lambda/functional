@@ -42,8 +42,8 @@
   [(_ x:expr) #'x]
   [(_ [x:id <- mx:expr] . rest)
    #'(chain-monad (λ (x) (do . rest)) mx)]
-  [(_ (define . definition) . rest)
-   #'(let () (define . definition) (do . rest))]
+  [(_ (define . definition) ...+ . rest)
+   #'(let () (define . definition) ... (do . rest))]
   [(_ mx:expr . rest)
    #'(chain-monad (λ (_) (do . rest)) mx)])
 

@@ -180,8 +180,18 @@ definitions do not produce new @racket[chain] calls, they simply create new bind
        (define (prettify a b) (~a a ": " b))
        (pure (prettify y z)))))
 
-Internal defintions defined within @racket[do] blocks may refer to all previous bindings, but never
-any subsequent ones (as those bindings have not yet been created in the monadic computation).}
+Internal defintions defined within @racket[do] blocks may refer to all previous bindings, but not
+subsequent ones. However, multiple internal definitions directly next to one another may be mutually
+recursive, so long as they are not separated by a @racket[chain].
+
+@(fantasy-interaction
+  (do [x <- (just 7)]
+      (define (calls-b)
+        (add1 (b)))
+      (define (b)
+        (- x))
+      [y <- (just (calls-b))]
+      (pure (* 2 y))))}
 
 @deftogether[(@defidform[<-]
               @defidform[←])]{
