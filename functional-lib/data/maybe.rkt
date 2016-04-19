@@ -1,6 +1,7 @@
 #lang curly-fn racket/base
 
 (require racket/require
+         (prefix-in c: data/collection)
          (multi-in data [functor applicative monad])
          (multi-in racket [contract generic match])
          (for-syntax racket/base
@@ -18,12 +19,11 @@
   [(define (map f x)
      (just (f (just-value x))))]
   #:methods gen:applicative
-  [(define/generic -apply apply)
-   (define (pure _ x) (just x))
+  [(define (pure _ x) (just x))
    (define/contract (apply f args)
      (any/c (listof maybe?) . -> . any/c)
      (if (andmap just? args)
-         (just (-apply (just-value f) (map just-value args)))
+         (just (c:apply (just-value f) (map just-value args)))
          nothing))]
   #:methods gen:monad
   [(define (chain f x)

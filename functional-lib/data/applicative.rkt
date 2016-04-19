@@ -14,6 +14,8 @@
          (rename-out [delayed-pure pure]
                      [#%app-applicative #%app]))
 
+(require racket/trace)
+
 (module+ coerce-delayed
   (provide coerce-pure))
 
@@ -25,10 +27,7 @@
   (λ (f . args) (apply-applicative f args))
 
   #:defaults
-  ([procedure?
-    (define (pure _ x) (const x))
-    (define apply c:apply)]
-   [c:sequence?
+  ([c:sequence?
     (define (pure _ x) (list x))
     (define (apply fs args)
       (c:for*/sequence ([f (c:in fs)]
@@ -44,15 +43,17 @@
       delayed))
 
 ; a wrapper function around the apply method for unwrapping delayed pure values
-; applicative? list? -> any
+; any/c list? -> any
 (define (apply-applicative f args)
-  ; if f is a delayed-pure instance, check if any of the args are concrete instances to infer the real
-  ; value of pure from them
-  (let* ([concrete-instance (if (delayed-pure? f)
-                                (or (findf (negate delayed-pure?) args) f)
-                                f)]
-         [coerce-concrete (coerce-pure concrete-instance)])
-    (apply (coerce-concrete f) (map coerce-concrete args))))
+  (cond [(applicative? f)
+         ; if f is a delayed-pure instance, check if any of the args are concrete instances to infer
+         ; the real value of pure from them
+         (let* ([concrete-instance (if (delayed-pure? f)
+                                       (or (findf (negate delayed-pure?) args) f)
+                                       f)]
+                [coerce-concrete (coerce-pure concrete-instance)])
+           (apply (coerce-concrete f) (map coerce-concrete args)))]
+        [else (c:apply f args)]))
 
 (define-syntax-parser #%app-applicative
   [(_ f:expr arg:expr ...) #'(apply-applicative f (list arg ...))]

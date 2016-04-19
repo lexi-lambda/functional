@@ -18,8 +18,9 @@ before_install:
 install:
   - raco pkg install --auto --link $TRAVIS_BUILD_DIR/functional-lib
   - raco pkg install --auto --link $TRAVIS_BUILD_DIR/functional-doc
+  - raco pkg install --auto --link $TRAVIS_BUILD_DIR/functional-test
   - raco pkg install --auto cover cover-coveralls
 
 script:
-  - raco test -ep functional-lib
-  - raco cover -bf coveralls -d $TRAVIS_BUILD_DIR/coverage -p functional-lib
+  - raco test -ep functional-lib functional-test
+  - raco cover -bf coveralls -d $TRAVIS_BUILD_DIR/coverage -p functional-lib functional-test
