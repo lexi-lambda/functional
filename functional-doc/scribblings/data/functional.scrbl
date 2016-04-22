@@ -7,7 +7,7 @@
                                   data/collection)
                      racket/contract
                      racket/match
-                     (multi-in data [functor applicative monad maybe])))
+                     (multi-in data [functor applicative monad maybe either])))
 
 @(module base-ids racket/base
    (require scribble/manual (for-label racket/base))
@@ -21,7 +21,8 @@
 
 @(define (make-fantasy-eval)
    (let ([eval ((make-eval-factory '()))])
-     (eval '(require data/functor data/applicative data/monad data/maybe racket/format racket/match
+     (eval '(require data/functor data/applicative data/monad data/maybe data/either
+                     racket/format racket/match
                      (except-in data/collection map)))
      eval))
 
@@ -34,9 +35,9 @@
 
 @table-of-contents[]
 
-@section{Interfaces}
+@section[#:tag "interfaces"]{Interfaces}
 
-@subsection{Functors}
+@subsection[#:tag "functors"]{Functors}
 
 @defmodule[data/functor]
 
@@ -69,7 +70,7 @@ The @reftech{generic interface} that specifies @tech{functors}.}
 @defproc[(map [f procedure?] [x functor?]) functor?]{
 Applies @racket[f] to the @tech{functor} @racket[x].}
 
-@subsection{Applicatives}
+@subsection[#:tag "applicatives"]{Applicatives}
 
 @defmodule[data/applicative]
 
@@ -100,7 +101,7 @@ places the value in a box because it cannot yet know what kind of functor it nee
 used, the value will be coerced into a functor of the appropriate type using the relevant value’s
 @racket[pure] method.}
 
-@subsection{Monads}
+@subsection[#:tag "monads"]{Monads}
 
 @defmodule[data/monad]
 
@@ -209,9 +210,11 @@ type) into a single value. In other words, this @emph{flattens} a monadic value 
   (join (just nothing))
   (join nothing))}
 
-@section{Data types}
+@section[#:tag "data-types" #:style 'toc]{Data types}
 
-@subsection{Maybe}
+@local-table-of-contents[]
+
+@subsection[#:tag "maybe"]{Maybe}
 
 @defmodule[data/maybe]
 
@@ -364,8 +367,8 @@ Optional values are @tech{monads} that short-circuit on @racket[nothing].
   (map add1 (just 1))
   (map add1 nothing)
   ((pure +) (just 1) (just 2))
-  (do [x <- (just 1)]
-      (pure (add1 x))))
+  (do [n <- (just 1)]
+      (pure (add1 n))))
 
 The @racket[nothing] binding also serves as a @reftech{match expander} that only recognizes the
 @racket[nothing] value, but it must be surrounded with parentheses to be compatible with the syntax of
@@ -377,3 +380,66 @@ The @racket[nothing] binding also serves as a @reftech{match expander} that only
     [((nothing))   #f ])
   (value-or-false (just 'something))
   (value-or-false nothing))}
+
+@subsection[#:tag "either"]{Either}
+
+@defmodule[data/either]
+
+The @deftech{either} type provides another implementation of @tech{optional values}, generally used to
+represent computations that can fail. However, it augments @racket[just] and @racket[nothing] by
+allowing the @emph{kind of failure} to be annotated. When a computation results in @racket[nothing],
+it clearly failed, but it is not always clear why (especially after a long chain of monadic
+computation).
+
+The @racket[right] constructor is exactly like @racket[just]—it signals a successful value, and it can
+be mapped over as a @tech{functor} or @tech{applicative functor} and sequenced as a @tech{monad}. The
+@racket[left] constructor has the same short-circuiting behavior of @racket[nothing], but it accepts a
+value like @racket[right], which can be used to annotate the kind of failure.
+
+As an example, we can rewrite the @racket[safe-] functions from the @seclink["maybe"]{maybe} section
+using @tech{either}.
+
+@(fantasy-interaction
+  (define (safe-/ a b)
+    (if (zero? b)
+        (left "attempted to divide by zero")
+        (right (/ a b))))
+
+  (define (safe-first lst)
+    (if (empty? lst)
+        (left "attempted to get the first element of an empty list")
+        (just (first lst))))
+
+  (define (safe-rest lst)
+     (if (empty? lst)
+         (left "attempted to get the rest of an empty list")
+         (just (rest lst))))
+
+  (define (divide-first-two lst)
+    (do [a  <- (safe-first lst)]
+        [xs <- (safe-rest lst)]
+        [b  <- (safe-first xs)]
+        (safe-/ a b)))
+  (divide-first-two '(20 11))
+  (divide-first-two '(3 0))
+  (divide-first-two '(3)))
+
+@deftogether[(@defproc[(right [x any/c]) either?]
+              @defproc[(left [x any/c]) either?]
+              @defproc[(either? [v any/c]) boolean?])]{
+Value constructors and predicate for @tech{either}, which are tagged @tech{optional values}. The
+@racket[right] function produces a successful value, and the @racket[left] constructor creates a value
+that represents failure.
+
+@(fantasy-interaction
+  (right 'hello)
+  (left 'failed))
+
+Either values are @tech{monads} that short-circuit on @racket[left].
+
+@(fantasy-interaction
+  (map add1 (right 1))
+  (map add1 (left 'failed))
+  ((pure +) (right 1) (right 2))
+  (do [n <- (right 1)]
+      (pure (add1 n))))}
