@@ -48,3 +48,17 @@
                       [y <- (identity (call-b))]
                       (identity (add1 y)))
                   (identity -23))))
+
+(describe "sequence"
+  (describe "chain"
+    (it "runs a computation through all possible paths"
+      (check-equal? (c:sequence->list
+                     (do [f <- (list + *)]
+                         [a <- (list 1 2)]
+                         [b <- (list 5 6)]
+                         (pure (f a b))))
+                    (list 6 7 7 8 5 6 10 12)))))
+
+(describe "join"
+  (it "flattens two levels of monadic context"
+    (check-equal? (join (identity (identity 3))) (identity 3))))
