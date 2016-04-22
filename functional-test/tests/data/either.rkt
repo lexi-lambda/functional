@@ -22,7 +22,7 @@
       (check-equal? ((right +) (right 1) (right 2)) (right 3)))
 
     (it "returns the first left if any of the values are left"
-      (check-equal? ((left +) (left 1) (right 2)) (left +))
+      (check-equal? ((left +) (left 1) (pure 2)) (left +))
       (check-equal? ((right +) (left 1) (left 2)) (left 1))
       (check-equal? ((right +) (right 1) (left 2)) (left 2))))
 
@@ -40,3 +40,17 @@
                         [z <- (right (sub1 y))]
                         (right (/ z 3)))
                     (left 'die)))))
+
+(describe "either"
+  (it "applies a function to a right value"
+    (check-equal? (either #f add1 (right 2)) 3))
+
+  (it "returns a default for a left value"
+    (check-equal? (either #f add1 (left 'fail)) #f)))
+
+(describe "from-either"
+  (it "returns a value inside of a just"
+    (check-equal? (from-either #f (right 3)) 3))
+
+  (it "returns a default for a left value"
+    (check-equal? (from-either #f (left 'fail)) #f)))

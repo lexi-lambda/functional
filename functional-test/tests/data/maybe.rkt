@@ -2,6 +2,7 @@
 
 (require racket/require
          (multi-in data [functor applicative monad maybe])
+         racket/match
          rackunit
          rackunit/spec)
 
@@ -25,7 +26,7 @@
       (check-equal? ((just +) nothing (just 2)) nothing))
     
     (it "returns nothing if the procedure is nothing"
-      (check-equal? (nothing (just 1) (just 2)) nothing)))
+      (check-equal? (nothing (pure 1) (just 2)) nothing)))
 
   (describe "chain"
     (it "threads a just value through the computation"
@@ -40,4 +41,26 @@
                         [y <- nothing]
                         [z <- (just (sub1 y))]
                         (just (/ z 3)))
-                    nothing))))
+                    nothing)))
+
+  (describe "nothing"
+    (it "prints like an opaque value"
+      (check-equal? (format "~a" nothing) "#<nothing>"))
+
+    (it "functions as a match expander"
+      (check-equal? (match (just 3) [(just _) #t] [(nothing) #f]) #t)
+      (check-equal? (match nothing  [(just _) #t] [(nothing) #f]) #f))))
+
+(describe "maybe"
+  (it "applies a function to a just value"
+    (check-equal? (maybe #f add1 (just 2)) 3))
+
+  (it "returns a default for nothing"
+    (check-equal? (maybe #f add1 nothing) #f)))
+
+(describe "from-maybe"
+  (it "returns a value inside of a just"
+    (check-equal? (from-maybe #f (just 3)) 3))
+
+  (it "returns a default for nothing"
+    (check-equal? (from-maybe #f nothing) #f)))
