@@ -2,7 +2,7 @@
 
 (require (prefix-in c: data/collection)
          data/functor
-         data/applicative
+         (rename-in data/applicative [#%app #%app-applicative])
          racket/contract
          rackunit
          rackunit/spec)
@@ -27,4 +27,24 @@
       (define (pure-wrapper->identity x)
         ((identity values) x))
       (check-equal? (pure-wrapper->identity (pure 3))
+                    (identity 3))))
+
+  (describe "apply"
+    (it "applies a function in a context to values in a context"
+      (check-equal? ((identity +) (identity 1) (identity 2))
+                    (identity 3)))
+
+    (it "determines the instance from the arguments if the function is pure"
+      (check-equal? ((pure +) (identity 1) (identity 2))
                     (identity 3)))))
+
+(describe "sequence"
+  (describe "pure"
+    (it "wraps a single value in a sequence"
+      (check-equal? (c:sequence->list (#%app-applicative (list values) (pure 3)))
+                    (list 3))))
+
+  (describe "apply"
+    (it "applies a function to all combinations of values"
+      (check-equal? (c:sequence->list (#%app-applicative (list + *) (list 1 2) (list 3 4)))
+                    (list 4 5 5 6 3 4 6 8)))))
