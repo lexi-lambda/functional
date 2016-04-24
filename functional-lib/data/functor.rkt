@@ -1,6 +1,6 @@
 #lang curly-fn racket/base
 
-(require (prefix-in c: data/collection)
+(require (prefix-in c: data/collection/collection)
          racket/generic
          racket/list
          static-rename)
