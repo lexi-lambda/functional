@@ -2,7 +2,7 @@
 
 @(require racket/require
           scribble/eval
-          (for-label (except-in data/collection map)
+          (for-label data/collection
                      (subtract-in (except-in racket/base #%app do)
                                   data/collection)
                      racket/contract
@@ -22,8 +22,7 @@
 @(define (make-fantasy-eval)
    (let ([eval ((make-eval-factory '()))])
      (eval '(require data/functor data/applicative data/monad data/maybe data/either
-                     racket/format racket/match
-                     (except-in data/collection map)))
+                     data/collection racket/format racket/match))
      eval))
 
 @(define-syntax-rule (fantasy-interaction . body)
