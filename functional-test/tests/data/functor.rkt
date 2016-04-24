@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require data/functor
+(require (except-in data/collection map)
+         data/functor
          rackunit
          rackunit/spec)
 
@@ -14,4 +15,7 @@
   (describe "map"
     (it "applies a function to the values inside a context"
       (check-equal? (map add1 (identity 25))
-                    (identity 26)))))
+                    (identity 26)))
+
+    (it "works like zip when applied to sequences"
+      (check-equal? (sequence->list (map + '(1 2 3) '(10 20 30))) '(11 22 33)))))
