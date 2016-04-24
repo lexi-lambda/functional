@@ -11,13 +11,15 @@
                      syntax/parse))
 
 (provide gen:applicative applicative? applicative/c
-         (rename-out [delayed-pure pure]
-                     [#%app-applicative #%app]))
+         (rename-out [delayed-pure pure]))
 
 (require racket/trace)
 
 (module+ coerce-delayed
   (provide coerce-pure))
+
+(module+ custom-app
+  (provide (rename-out [#%app-applicative #%app])))
 
 (define-generics applicative
   (apply applicative args)

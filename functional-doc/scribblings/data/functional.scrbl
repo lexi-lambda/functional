@@ -22,6 +22,7 @@
 @(define (make-fantasy-eval)
    (let ([eval ((make-eval-factory '()))])
      (eval '(require data/functor data/applicative data/monad data/maybe data/either
+                     (submod data/applicative custom-app)
                      data/collection racket/format racket/match))
      eval))
 

@@ -2,7 +2,8 @@
 
 (require (prefix-in c: data/collection)
          data/functor
-         (rename-in data/applicative [#%app #%app-applicative])
+         data/applicative
+         (only-in (submod data/applicative custom-app) [#%app #%app-applicative])
          racket/contract
          rackunit
          rackunit/spec)
