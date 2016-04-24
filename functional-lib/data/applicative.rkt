@@ -72,5 +72,5 @@
    (define (apply f args)
      (delayed-pure (-apply (delayed-pure-value f) (map delayed-pure-value args))))]
   #:methods gen:monad
-  [(define (chain x f)
+  [(define (chain f x)
      (f (delayed-pure-value x)))])
