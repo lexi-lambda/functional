@@ -5,10 +5,10 @@
          racket/contract
          racket/function
          racket/generic
-         syntax/parse/define
          (only-in "functor.rkt" gen:functor)
          "monad.rkt"
-         (for-syntax racket/base))
+         (for-syntax racket/base
+                     syntax/parse))
 
 (provide gen:applicative applicative? applicative/c
          (rename-out [delayed-pure pure]
@@ -55,9 +55,10 @@
            (apply (coerce-concrete f) (map coerce-concrete args)))]
         [else (c:apply f args)]))
 
-(define-syntax-parser #%app-applicative
-  [(_ f:expr arg:expr ...) #'(apply-applicative f (list arg ...))]
-  [(_ . rest)              #'(#%app . rest)])
+(define-syntax #%app-applicative
+  (syntax-parser
+    [(_ f:expr arg:expr ...) #'(apply-applicative f (list arg ...))]
+    [(_ . rest)              #'(#%app . rest)]))
 
 (struct delayed-pure (value)
   #:transparent

@@ -4,8 +4,8 @@
          racket/contract
          racket/generic
          racket/lazy-require
-         syntax/parse/define
-         (for-syntax racket/base))
+         (for-syntax racket/base
+                     syntax/parse))
 
 (lazy-require ["applicative.rkt" (pure)]
               [(submod "applicative.rkt" coerce-delayed) (coerce-pure)])
@@ -36,15 +36,16 @@
 (define-syntax (<- stx)
   (raise-syntax-error '<- "cannot be used outside of a do block" stx))
 
-(define-syntax-parser do
-  #:literals [define <-]
-  [(_ x:expr) #'x]
-  [(_ [x:id <- mx:expr] . rest)
-   #'(chain-monad (λ (x) (do . rest)) mx)]
-  [(_ (define . definition) ...+ . rest)
-   #'(let () (define . definition) ... (do . rest))]
-  [(_ mx:expr . rest)
-   #'(chain-monad (λ (_) (do . rest)) mx)])
+(define-syntax do
+  (syntax-parser
+    #:literals [define <-]
+    [(_ x:expr) #'x]
+    [(_ [x:id <- mx:expr] . rest)
+     #'(chain-monad (λ (x) (do . rest)) mx)]
+    [(_ (define . definition) ...+ . rest)
+     #'(let () (define . definition) ... (do . rest))]
+    [(_ mx:expr . rest)
+     #'(chain-monad (λ (_) (do . rest)) mx)]))
 
 (define (join x)
   (chain-monad values x))
