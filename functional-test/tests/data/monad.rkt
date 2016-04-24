@@ -4,6 +4,7 @@
          data/functor
          data/applicative
          data/monad
+         data/maybe
          racket/contract
          rackunit
          rackunit/spec)
@@ -62,3 +63,9 @@
 (describe "join"
   (it "flattens two levels of monadic context"
     (check-equal? (join (identity (identity 3))) (identity 3))))
+
+(describe "map/m"
+  (it "maps a function over a sequence and chains the results into a single monadic value"
+    (check-equal? (map/m just '(1 2 3)) (just '(1 2 3)))
+    (check-equal? (map/m values (list (just 1) (just 2) (just 3))) (just '(1 2 3)))
+    (check-equal? (map/m values (list (just 1) nothing (just 2))) nothing)))

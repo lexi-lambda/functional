@@ -209,6 +209,18 @@ type) into a single value. In other words, this @emph{flattens} a monadic value 
   (join (just nothing))
   (join nothing))}
 
+@defproc[(map/m [f (any/c . -> . monad?)] [xs sequence?]) monad?]{
+Applies @racket[f] to each element of @racket[xs], then chains the resulting monadic values from left
+to right and returns the results as a single monadic value.
+
+@(fantasy-interaction
+  (define (ascii->char x)
+    (if (<= 0 x 127)
+        (just (integer->char x))
+        nothing))
+  (map/m ascii->char '(76 33))
+  (map/m ascii->char '(76 -5 33)))}
+
 @section[#:tag "data-types" #:style 'toc]{Data types}
 
 @local-table-of-contents[]

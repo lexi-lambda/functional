@@ -1,9 +1,8 @@
 #lang racket/base
 
-(require data/collection
-         racket/contract
-         racket/generic
-         racket/lazy-require
+(require racket/require
+         data/collection
+         (multi-in racket [contract generic lazy-require match])
          (for-syntax racket/base
                      syntax/parse))
 
@@ -12,7 +11,8 @@
 
 (provide gen:monad monad?
          do <- (rename-out [chain-monad chain] [<- ←])
-         join)
+         (contract-out [join (monad? . -> . monad?)]
+                       [map/m ((any/c . -> . monad?) sequence? . -> . monad?)]))
 
 (define-generics monad
   (chain f monad)
@@ -49,3 +49,10 @@
 
 (define (join x)
   (chain-monad values x))
+
+(define/match (map/m f xs)
+  [(f (sequence x xs ...))
+   (do [y <- (f x)]
+       [ys <- (map/m f xs)]
+       (pure (cons y ys)))]
+  [(_ _) (pure '())])
