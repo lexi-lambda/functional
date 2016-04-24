@@ -19,7 +19,7 @@ before_install:
 
 install:
   - raco pkg install --auto --link $TRAVIS_BUILD_DIR/functional-lib
-  - raco pkg install --auto --link $TRAVIS_BUILD_DIR/functional-doc
+  - raco pkg update --auto --link $TRAVIS_BUILD_DIR/functional-doc
   - raco pkg install --auto --link $TRAVIS_BUILD_DIR/functional-test
   - raco pkg install --auto cover cover-coveralls
 
