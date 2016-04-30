@@ -4,6 +4,7 @@
          data/collection
          (multi-in racket [contract generic lazy-require match])
          (for-syntax racket/base
+                     racket/syntax
                      syntax/parse))
 
 (lazy-require ["applicative.rkt" (pure)]
@@ -40,8 +41,11 @@
   (syntax-parser
     #:literals [define <-]
     [(_ x:expr) #'x]
-    [(_ [x:id <- mx:expr] . rest)
-     #'(chain-monad (λ (x) (do . rest)) mx)]
+    [(_ [x:id (~and arrow <-) mx:expr] . rest)
+     (with-disappeared-uses
+      (begin
+        (record-disappeared-uses (list #'arrow))
+        #'(chain-monad (λ (x) (do . rest)) mx)))]
     [(_ (define . definition) ...+ . rest)
      #'(let () (define . definition) ... (do . rest))]
     [(_ mx:expr . rest)
