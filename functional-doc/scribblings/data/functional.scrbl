@@ -95,11 +95,21 @@ function for optional values is @racket[just].
               @defthing[applicative/c contract?])]{
 The @reftech{generic interface} that specifies @tech{applicative functors}.}
 
-@deftogether[(@defproc[(pure [v any/c]) applicative?])]{
+@defproc[(pure [v any/c]) applicative?]{
 Lifts a plain value into an @tech{applicative functor}. When initially called, this function simply
 places the value in a box because it cannot yet know what kind of functor it needs to produce. When
 used, the value will be coerced into a functor of the appropriate type using the relevant value’s
 @racket[pure] method.}
+
+@defproc[(pure? [v any/c]) boolean?]{
+A predicate that determines if a value is a boxed value that is awaiting coercion into a concrete type
+of @tech{applicative functor}. Ideally, you should never need to use this function, but sometimes
+values cannot be immediately coerced, so this can be needed.}
+
+@defproc[(pure/c [val-ctc contract?]) contract?]{
+A contract that accepts boxed values awaiting coercion into a concrete type of @tech{applicative
+functor}. Ideally, you should never need to use this function, but sometimes values cannot be
+immediately coerced, so this can be needed.}
 
 @subsection[#:tag "monads"]{Monads}
 

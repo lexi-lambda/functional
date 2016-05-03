@@ -11,7 +11,9 @@
                      syntax/parse))
 
 (provide gen:applicative applicative? applicative/c
-         (rename-out [delayed-pure pure]))
+         (rename-out [delayed-pure pure]
+                     [delayed-pure? pure?]
+                     [delayed-pure/c pure/c]))
 
 (require racket/trace)
 
@@ -76,3 +78,6 @@
   #:methods gen:monad
   [(define (chain f x)
      (f (delayed-pure-value x)))])
+
+(define (delayed-pure/c ctc)
+  (struct/c delayed-pure ctc))
