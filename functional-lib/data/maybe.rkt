@@ -7,7 +7,7 @@
          (for-syntax racket/base
                      syntax/parse))
 
-(provide maybe? just just? nothing nothing?
+(provide maybe? just just? nothing nothing? maybe/c
          maybe from-maybe)
 
 (define (maybe? x)
@@ -52,6 +52,9 @@
                  [_          #'nothing-value]))
 
 (define nothing? #{eq? nothing})
+
+(define (maybe/c val/c)
+  (or/c nothing? (struct/c just val/c)))
 
 (define/match (maybe x f m)
   [(_ f (just x))  (f x)]

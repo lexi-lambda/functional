@@ -7,7 +7,7 @@
          (for-syntax racket/base
                      syntax/parse))
 
-(provide either? right right? left left?
+(provide either? right right? left left? either/c
          either from-either)
 
 (define (either? x)
@@ -37,6 +37,10 @@
    (define (apply f args) f)]
   #:methods gen:monad
   [(define (chain f x) x)])
+
+(define (either/c left/c right/c)
+  (or/c (struct/c left left/c)
+        (struct/c right right/c)))
 
 (define/match (either x f m)
   [(_ f (right x)) (f x)]

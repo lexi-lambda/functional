@@ -393,6 +393,10 @@ The @racket[nothing] binding also serves as a @reftech{match expander} that only
   (value-or-false (just 'something))
   (value-or-false nothing))}
 
+@defproc[(maybe/c [val-ctc contract?]) contract?]{
+Produces a contract that accepts @racket[nothing] or a @racket[just] containing a value that satisfies
+@racket[val-ctc].}
+
 @subsection[#:tag "either"]{Either}
 
 @defmodule[data/either]
@@ -455,3 +459,8 @@ Either values are @tech{monads} that short-circuit on @racket[left].
   ((pure +) (right 1) (right 2))
   (do [n <- (right 1)]
       (pure (add1 n))))}
+
+@defproc[(either/c [left-ctc contract?] [right-ctc contract?]) contract?]{
+Produces a contract that accepts @tech{either} values. If the value is a @racket[left], the contained
+value must satisfy @racket[left-ctc]; likewise, if the value is a @racket[right], it must satisfy
+@racket[right-ctc].}
