@@ -8,7 +8,7 @@
                      syntax/parse))
 
 (provide either? right right? left left? either/c
-         either from-either)
+         either from-either map-left)
 
 (define (either? x)
   (or (right? x) (left? x)))
@@ -49,3 +49,7 @@
 (define/match (from-either x m)
   [(_ (right x)) x]
   [(x (left _))  x])
+
+(define/match (map-left f x)
+  [(_ (right x)) (right x)]
+  [(f (left x))  (left (f x))])

@@ -474,3 +474,11 @@ Either values are @tech{monads} that short-circuit on @racket[left].
 Produces a contract that accepts @tech{either} values. If the value is a @racket[left], the contained
 value must satisfy @racket[left-ctc]; likewise, if the value is a @racket[right], it must satisfy
 @racket[right-ctc].}
+
+@defproc[(map-left [f (any/c . -> . any/c)] [e either?]) either?]{
+Like @racket[map] over @tech{either} values, but flipped: it applies @racket[f] to values inside of a
+@racket[left] instead of a @racket[right].
+
+@(fantasy-interaction
+  (map-left symbol->string (right 1))
+  (map-left symbol->string (left 'failed)))}
