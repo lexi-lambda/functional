@@ -1,4 +1,4 @@
-#lang racket/base
+#lang curly-fn racket/base
 
 (require racket/require
          (multi-in data [functor applicative monad maybe])
@@ -64,3 +64,31 @@
 
   (it "returns a default for nothing"
     (check-equal? (from-maybe #f nothing) #f)))
+
+(describe "false->maybe"
+  (it "returns nothing for #f"
+    (check-equal? (false->maybe #f) nothing))
+
+  (it "returns just for non-#f values"
+    (check-equal? (false->maybe 'hello) (just 'hello))))
+
+(describe "with-maybe-handler"
+  (it "converts exceptions to nothing"
+    (check-equal? (with-maybe-handler exn:fail?
+                    (bytes->string/utf-8 #"\xC3"))
+                  nothing))
+
+  (it "wraps successful computations in just"
+    (check-equal? (with-maybe-handler exn:fail?
+                    (bytes->string/utf-8 #"hello"))
+                  (just "hello"))))
+
+(describe "exn->maybe"
+  (define try-bytes->string/utf-8
+    #{exn->maybe exn:fail? bytes->string/utf-8})
+  
+  (it "converts exceptions to nothing"
+    (check-equal? (try-bytes->string/utf-8 #"\xC3") nothing))
+
+  (it "wraps successful computations in just"
+    (check-equal? (try-bytes->string/utf-8 #"hello") (just "hello"))))

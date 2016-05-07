@@ -3,12 +3,12 @@
 (require racket/require
          (prefix-in c: data/collection)
          (multi-in data [functor applicative monad])
-         (multi-in racket [contract generic match])
+         (multi-in racket [contract function generic match])
          (for-syntax racket/base
                      syntax/parse))
 
 (provide maybe? just just? nothing nothing? maybe/c
-         maybe from-maybe)
+         maybe from-maybe false->maybe with-maybe-handler exn->maybe)
 
 (define (maybe? x)
   (or (just? x) (nothing? x)))
@@ -63,3 +63,13 @@
 (define/match (from-maybe x m)
   [(_ (just x))  x]
   [(x (nothing)) x])
+
+(define (false->maybe x)
+  (if x (just x) nothing))
+
+(define-syntax-rule (with-maybe-handler pred? body ...)
+  (with-handlers ([pred? (λ (_) nothing)])
+    (just (begin body ...))))
+
+(define (exn->maybe pred? proc . args)
+  (with-maybe-handler pred? (apply proc args)))
