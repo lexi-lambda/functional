@@ -2,13 +2,19 @@
 
 (require racket/require
          (prefix-in c: data/collection)
-         (multi-in data [functor applicative monad])
+         (multi-in data [functor applicative monad maybe])
          (multi-in racket [contract generic match])
          (for-syntax racket/base
                      syntax/parse))
 
 (provide either? success success? failure failure? either/c
-         either from-either map-failure)
+         (contract-out
+          [either (any/c (any/c . -> . any/c) either? . -> . any/c)]
+          [from-either (any/c either? . -> . any/c)]
+          [map-failure ((any/c . -> . any/c) either? . -> . either?)]
+          [either->maybe (either? . -> . maybe?)]
+          [maybe->either (any/c maybe? . -> . either?)]
+          [flip-either (either? . -> . either?)]))
 
 (define (either? x)
   (or (success? x) (failure? x)))
@@ -53,3 +59,12 @@
 (define/match (map-failure f x)
   [(_ (success x)) (success x)]
   [(f (failure x)) (failure (f x))])
+
+(define/match (flip-either x)
+  [((success x)) (failure x)]
+  [((failure x)) (success x)])
+
+(define (either->maybe x)
+  (either nothing just x))
+(define (maybe->either e x)
+  (maybe (failure e) success x))

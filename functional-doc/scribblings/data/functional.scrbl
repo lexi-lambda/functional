@@ -417,10 +417,10 @@ allowing the @emph{kind of failure} to be annotated. When a computation results 
 it clearly failed, but it is not always clear why (especially after a long chain of monadic
 computation).
 
-The @racket[success] constructor is exactly like @racket[just]—it signals a successful value, and it can
-be mapped over as a @tech{functor} or @tech{applicative functor} and sequenced as a @tech{monad}. The
-@racket[failure] constructor has the same short-circuiting behavior of @racket[nothing], but it accepts a
-value like @racket[success], which can be used to annotate the kind of failure.
+The @racket[success] constructor is exactly like @racket[just]—it signals a successful value, and it
+can be mapped over as a @tech{functor} or @tech{applicative functor} and sequenced as a @tech{monad}.
+The @racket[failure] constructor has the same short-circuiting behavior of @racket[nothing], but it
+accepts a value like @racket[success], which can be used to annotate the kind of failure.
 
 As an example, we can rewrite the @racket[safe-] functions from the @seclink["maybe"]{maybe} section
 using @tech{either}.
@@ -454,8 +454,8 @@ using @tech{either}.
               @defproc[(failure [x any/c]) either?]
               @defproc[(either? [v any/c]) boolean?])]{
 Value constructors and predicate for @tech{either}, which are tagged @tech{optional values}. The
-@racket[success] function produces a successful value, and the @racket[failure] constructor creates a value
-that represents failure.
+@racket[success] function produces a successful value, and the @racket[failure] constructor creates a
+value that represents failure.
 
 @(fantasy-interaction
   (success 'hello)
@@ -471,9 +471,9 @@ Either values are @tech{monads} that short-circuit on @racket[failure].
       (pure (add1 n))))}
 
 @defproc[(either/c [failure-ctc contract?] [success-ctc contract?]) contract?]{
-Produces a contract that accepts @tech{either} values. If the value is a @racket[failure], the contained
-value must satisfy @racket[failure-ctc]; likewise, if the value is a @racket[success], it must satisfy
-@racket[success-ctc].}
+Produces a contract that accepts @tech{either} values. If the value is a @racket[failure], the
+contained value must satisfy @racket[failure-ctc]; likewise, if the value is a @racket[success], it
+must satisfy @racket[success-ctc].}
 
 @defproc[(map-failure [f (any/c . -> . any/c)] [e either?]) either?]{
 Like @racket[map] over @tech{either} values, but flipped: it applies @racket[f] to values inside of a
@@ -482,3 +482,27 @@ Like @racket[map] over @tech{either} values, but flipped: it applies @racket[f] 
 @(fantasy-interaction
   (map-failure symbol->string (success 1))
   (map-failure symbol->string (failure 'failed)))}
+
+@defproc[(flip-either [e either?]) either?]{
+Converts @racket[success]es into @racket[failure]s and vice-versa.
+
+@(fantasy-interaction
+  (flip-either (success 'foo))
+  (flip-either (failure 'bar)))}
+
+@defproc[(maybe->either [x any/c] [m maybe?]) either?]{
+Converts @racket[m] to an @tech{either} value. A @racket[just] is converted to a @racket[success]
+containing the same value, and a @racket[nothing] is converted to a @racket[failure] containing
+@racket[x].
+
+@(fantasy-interaction
+  (maybe->either 'fail (just 42))
+  (maybe->either 'fail nothing))}
+
+@defproc[(either->maybe [e either?]) maybe?]{
+Converts @racket[e] to an unannotated @tech{optional value}. A @racket[success] is converted to a
+@racket[just] containing the same value, and a @racket[failure] is converted to @racket[nothing].
+
+@(fantasy-interaction
+  (either->maybe (success 42))
+  (either->maybe (failure 'fail)))}
