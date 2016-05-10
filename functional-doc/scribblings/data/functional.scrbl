@@ -417,10 +417,10 @@ allowing the @emph{kind of failure} to be annotated. When a computation results 
 it clearly failed, but it is not always clear why (especially after a long chain of monadic
 computation).
 
-The @racket[right] constructor is exactly like @racket[just]—it signals a successful value, and it can
+The @racket[success] constructor is exactly like @racket[just]—it signals a successful value, and it can
 be mapped over as a @tech{functor} or @tech{applicative functor} and sequenced as a @tech{monad}. The
-@racket[left] constructor has the same short-circuiting behavior of @racket[nothing], but it accepts a
-value like @racket[right], which can be used to annotate the kind of failure.
+@racket[failure] constructor has the same short-circuiting behavior of @racket[nothing], but it accepts a
+value like @racket[success], which can be used to annotate the kind of failure.
 
 As an example, we can rewrite the @racket[safe-] functions from the @seclink["maybe"]{maybe} section
 using @tech{either}.
@@ -428,17 +428,17 @@ using @tech{either}.
 @(fantasy-interaction
   (define (safe-/ a b)
     (if (zero? b)
-        (left "attempted to divide by zero")
-        (right (/ a b))))
+        (failure "attempted to divide by zero")
+        (success (/ a b))))
 
   (define (safe-first lst)
     (if (empty? lst)
-        (left "attempted to get the first element of an empty list")
+        (failure "attempted to get the first element of an empty list")
         (just (first lst))))
 
   (define (safe-rest lst)
      (if (empty? lst)
-         (left "attempted to get the rest of an empty list")
+         (failure "attempted to get the rest of an empty list")
          (just (rest lst))))
 
   (define (divide-first-two lst)
@@ -450,35 +450,35 @@ using @tech{either}.
   (divide-first-two '(3 0))
   (divide-first-two '(3)))
 
-@deftogether[(@defproc[(right [x any/c]) either?]
-              @defproc[(left [x any/c]) either?]
+@deftogether[(@defproc[(success [x any/c]) either?]
+              @defproc[(failure [x any/c]) either?]
               @defproc[(either? [v any/c]) boolean?])]{
 Value constructors and predicate for @tech{either}, which are tagged @tech{optional values}. The
-@racket[right] function produces a successful value, and the @racket[left] constructor creates a value
+@racket[success] function produces a successful value, and the @racket[failure] constructor creates a value
 that represents failure.
 
 @(fantasy-interaction
-  (right 'hello)
-  (left 'failed))
+  (success 'hello)
+  (failure 'failed))
 
-Either values are @tech{monads} that short-circuit on @racket[left].
+Either values are @tech{monads} that short-circuit on @racket[failure].
 
 @(fantasy-interaction
-  (map add1 (right 1))
-  (map add1 (left 'failed))
-  ((pure +) (right 1) (right 2))
-  (do [n <- (right 1)]
+  (map add1 (success 1))
+  (map add1 (failure 'failed))
+  ((pure +) (success 1) (success 2))
+  (do [n <- (success 1)]
       (pure (add1 n))))}
 
-@defproc[(either/c [left-ctc contract?] [right-ctc contract?]) contract?]{
-Produces a contract that accepts @tech{either} values. If the value is a @racket[left], the contained
-value must satisfy @racket[left-ctc]; likewise, if the value is a @racket[right], it must satisfy
-@racket[right-ctc].}
+@defproc[(either/c [failure-ctc contract?] [success-ctc contract?]) contract?]{
+Produces a contract that accepts @tech{either} values. If the value is a @racket[failure], the contained
+value must satisfy @racket[failure-ctc]; likewise, if the value is a @racket[success], it must satisfy
+@racket[success-ctc].}
 
-@defproc[(map-left [f (any/c . -> . any/c)] [e either?]) either?]{
+@defproc[(map-failure [f (any/c . -> . any/c)] [e either?]) either?]{
 Like @racket[map] over @tech{either} values, but flipped: it applies @racket[f] to values inside of a
-@racket[left] instead of a @racket[right].
+@racket[failure] instead of a @racket[success].
 
 @(fantasy-interaction
-  (map-left symbol->string (right 1))
-  (map-left symbol->string (left 'failed)))}
+  (map-failure symbol->string (success 1))
+  (map-failure symbol->string (failure 'failed)))}

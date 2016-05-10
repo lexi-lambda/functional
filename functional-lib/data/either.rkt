@@ -7,49 +7,49 @@
          (for-syntax racket/base
                      syntax/parse))
 
-(provide either? right right? left left? either/c
-         either from-either map-left)
+(provide either? success success? failure failure? either/c
+         either from-either map-failure)
 
 (define (either? x)
-  (or (right? x) (left? x)))
+  (or (success? x) (failure? x)))
 
-(struct right (value)
+(struct success (value)
   #:transparent
   #:methods gen:functor
   [(define (map f x)
-     (right (f (right-value x))))]
+     (success (f (success-value x))))]
   #:methods gen:applicative
-  [(define (pure _ x) (right x))
+  [(define (pure _ x) (success x))
    (define/contract (apply f args)
      (any/c (listof either?) . -> . any/c)
-     (or (findf left? args)
-         (right (c:apply (right-value f) (map right-value args)))))]
+     (or (findf failure? args)
+         (success (c:apply (success-value f) (map success-value args)))))]
   #:methods gen:monad
   [(define (chain f x)
-     (f (right-value x)))])
+     (f (success-value x)))])
 
-(struct left (value)
+(struct failure (value)
   #:transparent
   #:methods gen:functor
   [(define (map f x) x)]
   #:methods gen:applicative
-  [(define (pure _ x) (right x))
+  [(define (pure _ x) (success x))
    (define (apply f args) f)]
   #:methods gen:monad
   [(define (chain f x) x)])
 
-(define (either/c left/c right/c)
-  (or/c (struct/c left left/c)
-        (struct/c right right/c)))
+(define (either/c failure/c success/c)
+  (or/c (struct/c failure failure/c)
+        (struct/c success success/c)))
 
 (define/match (either x f m)
-  [(_ f (right x)) (f x)]
-  [(x _ (left _))  x])
+  [(_ f (success x)) (f x)]
+  [(x _ (failure _)) x])
 
 (define/match (from-either x m)
-  [(_ (right x)) x]
-  [(x (left _))  x])
+  [(_ (success x)) x]
+  [(x (failure _)) x])
 
-(define/match (map-left f x)
-  [(_ (right x)) (right x)]
-  [(f (left x))  (left (f x))])
+(define/match (map-failure f x)
+  [(_ (success x)) (success x)]
+  [(f (failure x)) (failure (f x))])
