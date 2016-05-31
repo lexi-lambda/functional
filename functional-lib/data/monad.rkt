@@ -48,11 +48,11 @@
   (syntax-parser
     #:literals [<-]
     [(_ x:expr) #'x]
-    [(_ [x:id {~and arrow <-} mx:expr] . rest)
+    [(_ [pat {~and arrow <-} mx:expr] . rest)
      (with-disappeared-uses
       (begin
         (record-disappeared-uses (list #'arrow))
-        #'(chain-monad (λ (x) (do . rest)) mx)))]
+        #'(chain-monad (match-lambda [pat (do . rest)]) mx)))]
     [(_ def:internal-definition ...+ . rest)
      #'(let () def ... (do . rest))]
     [(_ mx:expr . rest)

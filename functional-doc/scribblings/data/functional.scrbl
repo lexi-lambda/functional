@@ -142,7 +142,7 @@ result.}
          #:grammar
          ([expr-or-clauses monad-expr
                            (code:line do-clause expr-or-clauses)]
-          [do-clause [binding-id <- monad-expr]
+          [do-clause [match-pattern <- monad-expr]
                      monad-expr
                      internal-definition])
          #:contracts
@@ -169,7 +169,8 @@ used in subsequent computations.
        (pure (* x 2)))))
 
 Specifically, any block of the form @racket[(do [_x <- _m] _clause ...+)] is precisely equivalent to
-@racket[(chain (λ (_x) (do _clause ...+)) _m)].
+@racket[(chain (λ (_x) (do _clause ...+)) _m)]. More generally, the binding identifier can be replaced
+with a @racket[match] pattern, in which case the resulting code uses @racket[match-lambda] instead.
 
 Not every @racket[chain] operation has a useful result. In that case, the binding brackets may be
 omitted, simply leaving the @racket[monad-expr]. In this case, a @racket[chain] call will still be

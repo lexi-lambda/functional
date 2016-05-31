@@ -41,6 +41,11 @@
                       (identity c))
                   (identity #\a)))
 
+  (it "permits pattern-matching in binding position"
+    (check-equal? (do [(? number? x) <- (identity 96)]
+                      (identity x))
+                  (identity 96)))
+
   (it "supports mutually recursive internal definitions"
     (check-equal? (do [x <- (identity 12)]
                       (define (call-b)
