@@ -37,17 +37,24 @@
 (define-syntax (<- stx)
   (raise-syntax-error '<- "cannot be used outside of a do block" stx))
 
+(begin-for-syntax
+  (define-syntax-class internal-definition
+    #:description "internal definition"
+    [pattern ({~or {~literal define} {~literal define-values}
+                   {~literal match-define} {~literal match-define-values}}
+              . _)]))
+
 (define-syntax do
   (syntax-parser
-    #:literals [define <-]
+    #:literals [<-]
     [(_ x:expr) #'x]
-    [(_ [x:id (~and arrow <-) mx:expr] . rest)
+    [(_ [x:id {~and arrow <-} mx:expr] . rest)
      (with-disappeared-uses
       (begin
         (record-disappeared-uses (list #'arrow))
         #'(chain-monad (λ (x) (do . rest)) mx)))]
-    [(_ (define . definition) ...+ . rest)
-     #'(let () (define . definition) ... (do . rest))]
+    [(_ def:internal-definition ...+ . rest)
+     #'(let () def ... (do . rest))]
     [(_ mx:expr . rest)
      #'(chain-monad (λ (_) (do . rest)) mx)]))
 

@@ -6,6 +6,7 @@
          data/monad
          data/maybe
          racket/contract
+         racket/match
          rackunit
          rackunit/spec)
 
@@ -48,7 +49,13 @@
                         (- x))
                       [y <- (identity (call-b))]
                       (identity (add1 y)))
-                  (identity -23))))
+                  (identity -23)))
+
+  (it "supports match-define for internal definitions"
+    (check-equal? (do [x <- (identity 12)]
+                      (match-define (? number? y) x)
+                      (identity y))
+                  (identity 12))))
 
 (describe "sequence"
   (describe "chain"
