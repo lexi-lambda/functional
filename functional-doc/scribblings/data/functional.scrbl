@@ -514,8 +514,10 @@ using @tech{either}.
 
 @deftogether[(@defproc[(success [x any/c]) either?]
               @defproc[(failure [x any/c]) either?]
-              @defproc[(either? [v any/c]) boolean?])]{
-Value constructors and predicate for @tech{either}, which are tagged @tech{optional values}. The
+              @defproc[(either? [v any/c]) boolean?]
+              @defproc[(success? [v any/c]) boolean?]
+              @defproc[(failure? [v any/c]) boolean?])]{
+Value constructors and predicates for @tech{either}, which are tagged @tech{optional values}. The
 @racket[success] function produces a successful value, and the @racket[failure] constructor creates a
 value that represents failure.
 
@@ -536,6 +538,38 @@ Either values are @tech{monads} that short-circuit on @racket[failure].
 Produces a contract that accepts @tech{either} values. If the value is a @racket[failure], the
 contained value must satisfy @racket[failure-ctc]; likewise, if the value is a @racket[success], it
 must satisfy @racket[success-ctc].}
+
+@defproc[(either [failure-proc (any/c . -> . any/c)] [success-proc (any/c . -> . any/c)]
+                 [either-value maybe?])
+         any/c]{
+Like @racket[maybe] for @tech{either} values, performs a sort of “first-class pattern-match” on
+@racket[either-value]—if @racket[either-value] is @racket[(failure _x)], then the result is
+@racket[(failure-proc _x)]. Otherwise, if @racket[either-value] is @racket[(success _x)], then the
+result is @racket[(success-proc _x)].
+
+@(functional-interaction
+  (either string-length add1 (failure "failed"))
+  (either string-length add1 (success 1))
+  (either string-length add1 (success 2)))}
+
+@defproc[(from-success [default-value any/c] [either-value either?]) any/c]{
+Equivalent to @racket[(either (const default-value) identity either-value)]. If @racket[either-value]
+is a @racket[failure?], then the result is @racket[default-value]. Otherwise, if @racket[either-value]
+is @racket[(success _x)], then the result is @racket[_x].
+
+@(functional-interaction
+  (from-success #f (failure "failed"))
+  (from-success #f (success 18)))}
+
+@defproc[(from-failure [default-value any/c] [either-value either?]) any/c]{
+Equivalent to @racket[(either identity (const default-value) either-value)], which is also just
+@racket[from-success] with the sides flipped. If @racket[either-value] is a @racket[success?], then
+the result is @racket[default-value]. Otherwise, if @racket[either-value] is @racket[(failure _x)],
+then the result is @racket[_x].
+
+@(functional-interaction
+  (from-failure #f (failure "failed"))
+  (from-failure #f (success 18)))}
 
 @defproc[(map-failure [f (any/c . -> . any/c)] [e either?]) either?]{
 Like @racket[map] over @tech{either} values, but flipped: it applies @racket[f] to values inside of a

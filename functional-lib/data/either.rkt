@@ -9,8 +9,9 @@
 
 (provide either? success success? failure failure? either/c
          (contract-out
-          [either (any/c (any/c . -> . any/c) either? . -> . any/c)]
-          [from-either (any/c either? . -> . any/c)]
+          [either ((any/c . -> . any/c) (any/c . -> . any/c) either? . -> . any/c)]
+          [from-success (any/c either? . -> . any/c)]
+          [from-failure (any/c either? . -> . any/c)]
           [map-failure ((any/c . -> . any/c) either? . -> . either?)]
           [either->maybe (either? . -> . maybe?)]
           [maybe->either (any/c maybe? . -> . either?)]
@@ -48,13 +49,17 @@
   (or/c (struct/c failure failure/c)
         (struct/c success success/c)))
 
-(define/match (either x f m)
+(define/match (either g f m)
   [(_ f (success x)) (f x)]
-  [(x _ (failure _)) x])
+  [(g _ (failure y)) (g y)])
 
-(define/match (from-either x m)
+(define/match (from-success x m)
   [(_ (success x)) x]
   [(x (failure _)) x])
+
+(define/match (from-failure x m)
+  [(x (success _)) x]
+  [(_ (failure x)) x])
 
 (define/match (map-failure f x)
   [(_ (success x)) (success x)]

@@ -43,17 +43,24 @@
 
 (describe "either"
   (it "applies a function to a success value"
-    (check-equal? (either #f add1 (success 2)) 3))
+    (check-equal? (either symbol->string add1 (success 2)) 3))
+
+  (it "applies a function to a failure value"
+    (check-equal? (either symbol->string add1 (failure 'fail)) "fail")))
+
+(describe "from-success"
+  (it "returns a value inside of a success"
+    (check-equal? (from-success #f (success 3)) 3))
 
   (it "returns a default for a failure value"
-    (check-equal? (either #f add1 (failure 'fail)) #f)))
+    (check-equal? (from-success #f (failure 'fail)) #f)))
 
-(describe "from-either"
-  (it "returns a value inside of a just"
-    (check-equal? (from-either #f (success 3)) 3))
+(describe "from-failure"
+  (it "returns a value inside of a failure"
+    (check-equal? (from-failure #f (failure 'fail)) 'fail))
 
-  (it "returns a default for a failure value"
-    (check-equal? (from-either #f (failure 'fail)) #f)))
+  (it "returns a default for a success value"
+    (check-equal? (from-failure #f (success 3)) #f)))
 
 (describe "map-failure"
   (it "maps over failure values"
