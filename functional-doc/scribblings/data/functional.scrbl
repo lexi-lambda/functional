@@ -19,16 +19,16 @@
 @(define (reftech . args)
    (apply tech #:doc '(lib "scribblings/reference/reference.scrbl") args))
 
-@(define (make-fantasy-eval)
+@(define (make-functional-eval)
    (let ([eval ((make-eval-factory '()))])
      (eval '(require data/functor data/applicative data/monad data/maybe data/either
                      (submod data/applicative custom-app)
                      data/collection racket/format racket/match))
      eval))
 
-@(define-syntax-rule (fantasy-interaction . body)
+@(define-syntax-rule (functional-interaction . body)
    (interaction
-    #:eval (make-fantasy-eval)
+    #:eval (make-functional-eval)
     . body))
 
 @title{Functional generic interfaces}
@@ -49,13 +49,13 @@ time. All functors work with @racket[map], which allows producing a new functor 
 For example, using @racket[map] on lists simply modifies each element of the list, just like
 @base-id:map from @racketmodname[racket/base].
 
-@(fantasy-interaction
+@(functional-interaction
   (map add1 '(1 2 3)))
 
 However, unlike @base-id:map from @racketmodname[racket/base], this more generic @racket[map] can also
 map over things like @tech{optional values}.
 
-@(fantasy-interaction
+@(functional-interaction
   (map add1 (just 2))
   (map add1 nothing))
 
@@ -79,7 +79,7 @@ structure, not just procedures. This is much like @racket[prop:procedure], but i
 generic interface. Additionally, all implementations of @racket[gen:applicative] should also implement
 @racket[gen:functor].
 
-@(fantasy-interaction
+@(functional-interaction
   ((just +) (just 1) (just 2))
   ((just +) nothing (just 2))
   (sequence->list
@@ -154,7 +154,7 @@ significant amount of rightward drift.
 In its simplest form, @racket[do] does nothing at all. Any @racket[do] block containing only a single
 expression is equivalent to the expression itself.
 
-@(fantasy-interaction
+@(functional-interaction
   (do 3)
   (do "hello, world")
   (do '(1 2 3 4)))
@@ -163,7 +163,7 @@ This is obviously not particularly useful, but @racket[do] becomes helpful when 
 sub-forms. Each @racket[do-clause] may bind the result of a @racket[chain] operation, which may be
 used in subsequent computations.
 
-@(fantasy-interaction
+@(functional-interaction
   (sequence->list
    (do [x <- '(1 2 3)]
        (pure (* x 2)))))
@@ -176,7 +176,7 @@ Not every @racket[chain] operation has a useful result. In that case, the bindin
 omitted, simply leaving the @racket[monad-expr]. In this case, a @racket[chain] call will still be
 produced, but the result will not be bound anywhere.
 
-@(fantasy-interaction
+@(functional-interaction
   (sequence->list
    (do '(1 2 3)
        (pure 'hello))))
@@ -184,7 +184,7 @@ produced, but the result will not be bound anywhere.
 Finally, arbitrary internal definitions may be interspersed between each @racket[do-clause]. These
 definitions do not produce new @racket[chain] calls, they simply create new bindings.
 
-@(fantasy-interaction
+@(functional-interaction
   (sequence->list
    (do [x <- '(1 2)]
        (define y (* x 2))
@@ -196,7 +196,7 @@ Internal defintions defined within @racket[do] blocks may refer to all previous 
 subsequent ones. However, multiple internal definitions directly next to one another may be mutually
 recursive, so long as they are not separated by a @racket[chain].
 
-@(fantasy-interaction
+@(functional-interaction
   (do [x <- (just 7)]
       (define (calls-b)
         (add1 (b)))
@@ -214,7 +214,7 @@ error.}
 Joins a nested monadic value (a monadic value embedded within another monadic value, both of the same
 type) into a single value. In other words, this @emph{flattens} a monadic value by a single layer.
 
-@(fantasy-interaction
+@(functional-interaction
   (sequence->list (join '((1 2) (3 4))))
   (sequence->list (join '()))
   (join (just (just 'hello)))
@@ -225,7 +225,7 @@ type) into a single value. In other words, this @emph{flattens} a monadic value 
 Applies @racket[f] to each element of @racket[xs], then chains the resulting monadic values from left
 to right and returns the results as a single monadic value.
 
-@(fantasy-interaction
+@(functional-interaction
   (define (ascii->char x)
     (if (<= 0 x 127)
         (just (integer->char x))
@@ -261,7 +261,7 @@ Optional values are @tech{functors}, @tech{applicative functors}, and @tech{mona
 reasonable framework for managing failable computations in a consistent and extensible way. For
 example, consider an operation that can fail.
 
-@(define maybe-eval (make-fantasy-eval))
+@(define maybe-eval (make-functional-eval))
 
 @(interaction
   #:eval maybe-eval
@@ -380,13 +380,13 @@ single line of explicit error handling code.
 Value constructors and predicate for @tech{optional values}. The @racket[just] function produces a
 boxed value, and the @racket[nothing] value represents the absence of a value.
 
-@(fantasy-interaction
+@(functional-interaction
   (just 'hello)
   nothing)
 
 Optional values are @tech{monads} that short-circuit on @racket[nothing].
 
-@(fantasy-interaction
+@(functional-interaction
   (map add1 (just 1))
   (map add1 nothing)
   ((pure +) (just 1) (just 2))
@@ -397,7 +397,7 @@ The @racket[nothing] binding also serves as a @reftech{match expander} that only
 @racket[nothing] value, but it must be surrounded with parentheses to be compatible with the syntax of
 @racket[match].
 
-@(fantasy-interaction
+@(functional-interaction
   (define/match (value-or-false mval)
     [((just val))  val]
     [((nothing))   #f ])
@@ -426,7 +426,7 @@ accepts a value like @racket[success], which can be used to annotate the kind of
 As an example, we can rewrite the @racket[safe-] functions from the @seclink["maybe"]{maybe} section
 using @tech{either}.
 
-@(fantasy-interaction
+@(functional-interaction
   (define (safe-/ a b)
     (if (zero? b)
         (failure "attempted to divide by zero")
@@ -458,13 +458,13 @@ Value constructors and predicate for @tech{either}, which are tagged @tech{optio
 @racket[success] function produces a successful value, and the @racket[failure] constructor creates a
 value that represents failure.
 
-@(fantasy-interaction
+@(functional-interaction
   (success 'hello)
   (failure 'failed))
 
 Either values are @tech{monads} that short-circuit on @racket[failure].
 
-@(fantasy-interaction
+@(functional-interaction
   (map add1 (success 1))
   (map add1 (failure 'failed))
   ((pure +) (success 1) (success 2))
@@ -480,14 +480,14 @@ must satisfy @racket[success-ctc].}
 Like @racket[map] over @tech{either} values, but flipped: it applies @racket[f] to values inside of a
 @racket[failure] instead of a @racket[success].
 
-@(fantasy-interaction
+@(functional-interaction
   (map-failure symbol->string (success 1))
   (map-failure symbol->string (failure 'failed)))}
 
 @defproc[(flip-either [e either?]) either?]{
 Converts @racket[success]es into @racket[failure]s and vice-versa.
 
-@(fantasy-interaction
+@(functional-interaction
   (flip-either (success 'foo))
   (flip-either (failure 'bar)))}
 
@@ -496,7 +496,7 @@ Converts @racket[m] to an @tech{either} value. A @racket[just] is converted to a
 containing the same value, and a @racket[nothing] is converted to a @racket[failure] containing
 @racket[x].
 
-@(fantasy-interaction
+@(functional-interaction
   (maybe->either 'fail (just 42))
   (maybe->either 'fail nothing))}
 
@@ -504,6 +504,6 @@ containing the same value, and a @racket[nothing] is converted to a @racket[fail
 Converts @racket[e] to an unannotated @tech{optional value}. A @racket[success] is converted to a
 @racket[just] containing the same value, and a @racket[failure] is converted to @racket[nothing].
 
-@(fantasy-interaction
+@(functional-interaction
   (either->maybe (success 42))
   (either->maybe (failure 'fail)))}
