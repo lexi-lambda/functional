@@ -11,7 +11,7 @@
          with-maybe-handler
          (contract-out
           [maybe (any/c (any/c . -> . any/c) maybe? . -> . any/c)]
-          [from-maybe (any/c maybe? . -> . any/c)]
+          [from-just (any/c maybe? . -> . any/c)]
           [false->maybe (any/c . -> . maybe?)]
           [exn->maybe ([(any/c . -> . any/c) procedure?] #:rest any/c . ->* . any/c)]))
 
@@ -65,7 +65,7 @@
   [(_ f (just x))  (f x)]
   [(x _ (nothing)) x])
 
-(define/match (from-maybe x m)
+(define/match (from-just x m)
   [(_ (just x))  x]
   [(x (nothing)) x])
 

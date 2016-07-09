@@ -419,14 +419,14 @@ Performs a sort of “first-class pattern-match” on @racket[maybe-value]—if 
   (maybe 0 add1 (just 1))
   (maybe 0 add1 (just 2)))}
 
-@defproc[(from-maybe [default-value any/c] [maybe-value maybe?]) any/c]{
+@defproc[(from-just [default-value any/c] [maybe-value maybe?]) any/c]{
 Equivalent to @racket[(maybe default-value identity maybe-value)]. If @racket[maybe-value] is
 @racket[nothing], then the result is @racket[default-value]. Otherwise, if @racket[maybe-value] is
 @racket[(just _x)], then the result is @racket[_x].
 
 @(functional-interaction
-  (from-maybe #f nothing)
-  (from-maybe #f (just "hello")))}
+  (from-just #f nothing)
+  (from-just #f (just "hello")))}
 
 @defproc[(false->maybe [v any/c]) any/c]{
 Produces @racket[nothing] if @racket[v] is @racket[#f], otherwise produces @racket[(just v)]. This is

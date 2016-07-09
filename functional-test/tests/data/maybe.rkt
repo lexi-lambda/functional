@@ -58,12 +58,12 @@
   (it "returns a default for nothing"
     (check-equal? (maybe #f add1 nothing) #f)))
 
-(describe "from-maybe"
+(describe "from-just"
   (it "returns a value inside of a just"
-    (check-equal? (from-maybe #f (just 3)) 3))
+    (check-equal? (from-just #f (just 3)) 3))
 
   (it "returns a default for nothing"
-    (check-equal? (from-maybe #f nothing) #f)))
+    (check-equal? (from-just #f nothing) #f)))
 
 (describe "false->maybe"
   (it "returns nothing for #f"
