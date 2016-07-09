@@ -5,9 +5,8 @@
           (for-label data/collection
                      (subtract-in (except-in racket/base #%app do)
                                   data/collection)
-                     racket/contract
-                     racket/match
-                     (multi-in data [functor applicative monad maybe either])))
+                     (multi-in data [functor applicative monad maybe either])
+                     (multi-in racket [contract format function match])))
 
 @(module base-ids racket/base
    (require scribble/manual (for-label racket/base))
@@ -23,7 +22,7 @@
    (let ([eval ((make-eval-factory '()))])
      (eval '(require data/functor data/applicative data/monad data/maybe data/either
                      (submod data/applicative custom-app)
-                     data/collection racket/format racket/match))
+                     data/collection racket/format racket/function racket/match))
      eval))
 
 @(define-syntax-rule (functional-interaction . body)
@@ -376,8 +375,10 @@ single line of explicit error handling code.
 
 @deftogether[(@defproc[(just [x any/c]) maybe?]
               @defthing[nothing maybe?]
-              @defproc[(maybe? [v any/c]) boolean?])]{
-Value constructors and predicate for @tech{optional values}. The @racket[just] function produces a
+              @defproc[(maybe? [v any/c]) boolean?]
+              @defproc[(just? [v any/c]) boolean?]
+              @defproc[(nothing? [v any/c]) boolean?])]{
+Value constructors and predicates for @tech{optional values}. The @racket[just] function produces a
 boxed value, and the @racket[nothing] value represents the absence of a value.
 
 @(functional-interaction
@@ -407,6 +408,66 @@ The @racket[nothing] binding also serves as a @reftech{match expander} that only
 @defproc[(maybe/c [val-ctc contract?]) contract?]{
 Produces a contract that accepts @racket[nothing] or a @racket[just] containing a value that satisfies
 @racket[val-ctc].}
+
+@defproc[(maybe [default-value any/c] [proc (any/c . -> . any/c)] [maybe-value maybe?]) any/c]{
+Performs a sort of “first-class pattern-match” on @racket[maybe-value]—if @racket[maybe-value] is
+@racket[nothing], then @racket[default-value] is returned. Otherwise, if @racket[maybe-value] is
+@racket[(just _x)], then the result is @racket[(proc _x)].
+
+@(functional-interaction
+  (maybe 0 add1 nothing)
+  (maybe 0 add1 (just 1))
+  (maybe 0 add1 (just 2)))}
+
+@defproc[(from-maybe [default-value any/c] [maybe-value maybe?]) any/c]{
+Equivalent to @racket[(maybe default-value identity maybe-value)]. If @racket[maybe-value] is
+@racket[nothing], then the result is @racket[default-value]. Otherwise, if @racket[maybe-value] is
+@racket[(just _x)], then the result is @racket[_x].
+
+@(functional-interaction
+  (from-maybe #f nothing)
+  (from-maybe #f (just "hello")))}
+
+@defproc[(false->maybe [v any/c]) any/c]{
+Produces @racket[nothing] if @racket[v] is @racket[#f], otherwise produces @racket[(just v)]. This is
+useful when interacting with Racket APIs that follow the Scheme convention of using @racket[#f] as a
+null value to represent failure or lack of a value.
+
+@(functional-interaction
+  (false->maybe #f)
+  (false->maybe "hello"))}
+
+@defform[(with-maybe-handler exn-pred? body ...)
+         #:contracts ([exn-pred? (any/c . -> . any/c)])]{
+Executes each @racket[body] form as usual, but catches any exceptions that satisfy
+@racket[exn-pred?]. If such an exception is caught, the result of the whole form is @racket[nothing];
+otherwise, the final @racket[body] form is evaluated to produce a value, @racket[_v], and the result
+is @racket[(just _v)].
+
+This is useful for interacting with Racket APIs that throw exceptions upon failure and adapting them
+to produce @tech{optional values} instead.
+
+@(functional-interaction
+  (with-maybe-handler exn:fail:contract?
+    (bytes->string/utf-8 #"\xC3"))
+  (with-maybe-handler exn:fail:contract?
+    (bytes->string/utf-8 #"hello")))}
+
+@defproc[(exn->maybe [exn-pred? (any/c . -> . any/c)] [proc procedure?] [arg any/c] ...) maybe?]{
+A procedure version of @racket[with-maybe-handler] that functions like @racket[apply], except that any
+exceptions thrown during the dynamic extent of the call that match @racket[exn-pred?] will cause the
+entire expression to evaluate to @racket[nothing]. Otherwise, the result is wrapped in @racket[just]
+and return as-is.
+
+This can be especially useful when paired with @racket[curry], which can be used to produce a wrapped
+version of a procedure that throws exceptions that instead reports failures in terms of
+@tech{optional values}.
+
+@(functional-interaction
+  (define try-bytes->string/utf-8
+    (curry exn->maybe exn:fail:contract? bytes->string/utf-8))
+  (try-bytes->string/utf-8 #"\xC3")
+  (try-bytes->string/utf-8 #"hello"))}
 
 @subsection[#:tag "either"]{Either}
 

@@ -8,7 +8,12 @@
                      syntax/parse))
 
 (provide maybe? just just? nothing nothing? maybe/c
-         maybe from-maybe false->maybe with-maybe-handler exn->maybe)
+         with-maybe-handler
+         (contract-out
+          [maybe (any/c (any/c . -> . any/c) maybe? . -> . any/c)]
+          [from-maybe (any/c maybe? . -> . any/c)]
+          [false->maybe (any/c . -> . maybe?)]
+          [exn->maybe ([(any/c . -> . any/c) procedure?] #:rest any/c . ->* . any/c)]))
 
 (define (maybe? x)
   (or (just? x) (nothing? x)))
@@ -69,7 +74,7 @@
 
 (define-syntax-rule (with-maybe-handler pred? body ...)
   (with-handlers ([pred? (λ (_) nothing)])
-    (just (begin body ...))))
+    (just (let () body ...))))
 
 (define (exn->maybe pred? proc . args)
   (with-maybe-handler pred? (apply proc args)))
