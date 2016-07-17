@@ -12,6 +12,9 @@
          (contract-out
           [maybe (any/c (any/c . -> . any/c) maybe? . -> . any/c)]
           [from-just (any/c maybe? . -> . any/c)]
+          [from-just! (just? . -> . any/c)]
+          [filter-just ((listof maybe?) . -> . list?)]
+          [map-maybe ((any/c . -> . maybe?) list? . -> . list?)]
           [false->maybe (any/c . -> . maybe?)]
           [exn->maybe ([(any/c . -> . any/c) procedure?] #:rest any/c . ->* . any/c)]))
 
@@ -68,6 +71,21 @@
 (define/match (from-just x m)
   [(_ (just x))  x]
   [(x (nothing)) x])
+
+(define (from-just! x)
+  (just-value x))
+
+(define/match (filter-just lst)
+  [('()) '()]
+  [((cons (just x) rest)) (cons x (filter-just rest))]
+  [((cons (nothing) rest)) (filter-just rest)])
+
+(define/match (map-maybe f lst)
+  [(_ '()) '()]
+  [(f (cons x rest))
+   (match (f x)
+     [(just x) (cons x (map-maybe f rest))]
+     [(nothing) (map-maybe f rest)])])
 
 (define (false->maybe x)
   (if x (just x) nothing))

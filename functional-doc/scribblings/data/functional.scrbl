@@ -428,6 +428,31 @@ Equivalent to @racket[(maybe default-value identity maybe-value)]. If @racket[ma
   (from-just #f nothing)
   (from-just #f (just "hello")))}
 
+@defproc[(from-just! [just-value just?]) any/c]{
+Unwraps an @tech{optional value} if it is a @racket[just?], otherwise raises
+@racket[exn:fail:contract?]. Use this function sparingly—it negates much of the benefit of using
+@tech{optional values} in the first place, but sometimes there are instances in which the programmer
+can prove a value will never be @racket[nothing], so this function is helpful.
+
+@(functional-interaction
+  (from-just! (just "hello"))
+  (from-just! nothing))}
+
+@defproc[(filter-just [maybes-lst (listof maybe?)]) list?]{
+Given a list of @tech{optional values}, returns a new list with all of the values in the list wrapped
+with @racket[just], discarding all of the values that were @racket[nothing].
+
+@(functional-interaction
+  (filter-just (list (just 1) nothing (just 3))))}
+
+@defproc[(map-maybe [proc (any/c . -> . maybe?)] [lst list?]) list?]{
+Like @racket[map] combined with @racket[filter-just], but more efficient because there is no need to
+construct an intermediate list.
+
+@(functional-interaction
+  (map-maybe (λ (x) (if (positive? x) (just (sqrt x)) nothing))
+             (list -2 3 0 9)))}
+
 @defproc[(false->maybe [v any/c]) any/c]{
 Produces @racket[nothing] if @racket[v] is @racket[#f], otherwise produces @racket[(just v)]. This is
 useful when interacting with Racket APIs that follow the Scheme convention of using @racket[#f] as a
