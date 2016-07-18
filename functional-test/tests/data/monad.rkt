@@ -56,11 +56,17 @@
                       (identity (add1 y)))
                   (identity -23)))
 
-  (it "supports match-define for internal definitions"
+  (it "supports macros that expand into internal definitions"
     (check-equal? (do [x <- (identity 12)]
                       (match-define (? number? y) x)
                       (identity y))
-                  (identity 12))))
+                  (identity 12)))
+
+  (it "supports macros that expand into internal syntax definitions"
+    (check-equal? (do [x <- (identity 12)]
+                      (struct container (value) #:prefab)
+                      (identity (container x)))
+                  (identity #s(container 12)))))
 
 (describe "sequence"
   (describe "chain"

@@ -183,6 +183,12 @@ produced, but the result will not be bound anywhere.
 Finally, arbitrary internal definitions may be interspersed between each @racket[do-clause]. These
 definitions do not produce new @racket[chain] calls, they simply create new bindings.
 
+@margin-note{
+  If a macro used within a @racket[do] block produces a @racket[begin] form containing both internal
+  definitions and expressions, the whole form is spliced into the surrounding internal definition
+  context. All expressions will be simply evaluated for side-effects and will not result in any
+  additional calls to @racket[chain].}
+
 @(functional-interaction
   (sequence->list
    (do [x <- '(1 2)]

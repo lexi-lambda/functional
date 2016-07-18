@@ -39,10 +39,21 @@
 
 (begin-for-syntax
   (define-syntax-class internal-definition
+    #:attributes [expansion]
     #:description "internal definition"
-    [pattern ({~or {~literal define} {~literal define-values}
-                   {~literal match-define} {~literal match-define-values}}
-              . _)]))
+    [pattern form
+             #:with expansion
+             (local-expand #'form (list (generate-temporary #'form))
+                           (list #'define #'define-values #'define-syntax #'define-syntaxes))
+             #:when (internal-definition? #'expansion)])
+
+  (define internal-definition?
+    (syntax-parser
+      #:literals [begin define define-values define-syntax define-syntaxes]
+      [(begin form ...)
+       (ormap internal-definition? (attribute form))]
+      [({~or define define-values define-syntax define-syntaxes} . _) #t]
+      [_ #f])))
 
 (define-syntax do
   (syntax-parser
@@ -54,7 +65,7 @@
         (record-disappeared-uses (list #'arrow))
         #'(chain-monad (match-lambda [pat (do . rest)]) mx)))]
     [(_ def:internal-definition ...+ . rest)
-     #'(let () def ... (do . rest))]
+     #'(let () def.expansion ... (do . rest))]
     [(_ mx:expr . rest)
      #'(chain-monad (λ (_) (do . rest)) mx)]))
 
