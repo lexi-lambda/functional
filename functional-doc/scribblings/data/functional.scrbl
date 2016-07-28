@@ -602,6 +602,16 @@ then the result is @racket[_x].
   (from-failure #f (failure "failed"))
   (from-failure #f (success 18)))}
 
+@defproc[(from-either [either-value either?]) any/c]{
+Extracts the value from any @tech{either} value; equivalent to
+@racket[(either identity identity either-value)]. If @racket[either-value] is @racket[(success _x)],
+then the result is @racket[_x]. Otherwise, if @racket[either-value] is @racket[(failure _y)], then the
+result is @racket[_y].
+
+@(functional-interaction
+  (from-either (failure "failed"))
+  (from-either (success 18)))}
+
 @defproc[(map-failure [f (any/c . -> . any/c)] [e either?]) either?]{
 Like @racket[map] over @tech{either} values, but flipped: it applies @racket[f] to values inside of a
 @racket[failure] instead of a @racket[success].

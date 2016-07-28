@@ -62,6 +62,13 @@
   (it "returns a default for a success value"
     (check-equal? (from-failure #f (success 3)) #f)))
 
+(describe "from-either"
+  (it "returns a value from inside of a success"
+    (check-equal? (from-either (success 3)) 3))
+
+  (it "returns a value inside of a failure"
+    (check-equal? (from-either (failure 'fail)) 'fail)))
+
 (describe "map-failure"
   (it "maps over failure values"
     (check-equal? (map-failure add1 (failure 1)) (failure 2)))

@@ -12,6 +12,7 @@
           [either ((any/c . -> . any/c) (any/c . -> . any/c) either? . -> . any/c)]
           [from-success (any/c either? . -> . any/c)]
           [from-failure (any/c either? . -> . any/c)]
+          [from-either (either? . -> . any/c)]
           [map-failure ((any/c . -> . any/c) either? . -> . either?)]
           [either->maybe (either? . -> . maybe?)]
           [maybe->either (any/c maybe? . -> . either?)]
@@ -60,6 +61,10 @@
 (define/match (from-failure x m)
   [(x (success _)) x]
   [(_ (failure x)) x])
+
+(define/match (from-either x)
+  [((success x)) x]
+  [((failure x)) x])
 
 (define/match (map-failure f x)
   [(_ (success x)) (success x)]
