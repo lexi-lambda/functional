@@ -5,7 +5,7 @@
 (define collection 'multi)
 
 (define deps
-  '(["base" #:version "6.2"]
+  '(["base" #:version "6.3"]
     ["collections" #:version "1.3"]
     "curly-fn-lib"
     "static-rename"))
