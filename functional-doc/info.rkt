@@ -6,7 +6,8 @@
   '())
 (define build-deps
   '("base"
-    "collections"
+    "collections-doc"
+    "collections-lib"
     "functional-lib"
     "racket-doc"
     "scribble-lib"))

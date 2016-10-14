@@ -6,8 +6,8 @@
   '())
 (define build-deps
   '("base"
-    "collections"
-    "curly-fn"
+    "collections-lib"
+    "curly-fn-lib"
     "functional-lib"
     "rackunit-lib"
     "rackunit-spec"))

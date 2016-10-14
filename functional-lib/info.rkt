@@ -6,7 +6,7 @@
 
 (define deps
   '(["base" #:version "6.3"]
-    ["collections" #:version "1.3"]
+    ["collections-lib" #:version "1.3"]
     "curly-fn-lib"
     "static-rename"))
 (define build-deps
