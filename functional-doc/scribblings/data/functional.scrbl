@@ -31,6 +31,12 @@
     . body))
 
 @title{Functional generic interfaces}
+@author[@author+email["Alexis King" "lexi.lambda@gmail.com"]]
+
+This package provides a set of interfaces and data structures that are designed to make it easier to
+write programs in a compositional, purely functional style. It uses @reftech{generic interfaces} via
+@racketmodname[racket/generic] to provide a set of helpers that can be used with a variety of concrete
+values.
 
 @table-of-contents[]
 
@@ -59,7 +65,19 @@ map over things like @tech{optional values}.
   (map add1 nothing))
 
 Functors provide a way to manipulate data in a consistent way without needing to know the data’s
-underlying structure.
+underlying structure. To ensure consistency and predictability, all implementations of
+@racket[gen:functor] must conform to the @deftech{functor laws}, of which there are two:
+
+@nested[
+ #:style 'inset
+ @itemlist[
+  #:style 'ordered
+  @item{@racket[(map identity _x)] must be equivalent to @racket[_x].}
+  @item{@racket[(map (compose _f _g) _x)] must be equivalent to @racket[(map _f (map _g _x))].}]]
+
+Most reasonable definitions of a functor will satisfy these laws already, but it is possible to write
+an implementation that does not, and there is no guarantee that functions in this library will work
+predictably on unlawful functors.
 
 @deftogether[(@defidform[#:kind "interface" gen:functor]
               @defproc[(functor? [v any/c]) boolean?]
@@ -68,6 +86,22 @@ The @reftech{generic interface} that specifies @tech{functors}.}
 
 @defproc[(map [f procedure?] [x functor?]) functor?]{
 Applies @racket[f] to the @tech{functor} @racket[x].}
+
+@subsubsection[#:tag "custom-functors"]{Implementing new functors}
+
+To define your own functors, simply implement the @racket[gen:functor] @reftech{generic interface} and
+implement the @racket[map] method. The only implementation requirements are that methods conform to
+their associated contracts and that they follow the @tech{functor laws}.
+
+Here is an example implementation of the most trivial possible functor, the identity functor:
+
+@(functional-interaction
+  (struct id (val)
+    #:transparent
+    #:methods gen:functor
+    [(define (map f x)
+       (id (f (id-val x))))])
+  (map add1 (id 12)))
 
 @subsection[#:tag "applicatives"]{Applicatives}
 
@@ -88,6 +122,21 @@ In addition to the implementation of @racket[apply], the @racket[gen:applicative
 implement a function called @racket[pure]. This function “lifts” an ordinary value into the functor.
 For example, the @racket[pure] function for lists is just @racket[list], but the @racket[pure]
 function for optional values is @racket[just].
+
+Like functors, applicative functors have their own set of @deftech{applicative functor laws} which all
+implementations of @racket[gen:applicative] must conform to:
+
+@nested[
+ #:style 'inset
+ @itemlist[
+  #:style 'ordered
+  @item{@racket[((pure identity) _x)] must be equivalent to @racket[_x].}
+  @item{@racket[(((pure compose) _f _g) _x)] must be equivalent to @racket[(_f (_g _x))].}
+  @item{@racket[((pure _f) (pure _x))] must be equivalent to @racket[(pure (_f _x))].}]]
+
+Most reasonable definitions of an applicative functor will satisfy these laws already, but it is
+possible to write an implementation that does not, and there is no guarantee that functions in this
+library will work predictably on unlawful applicative functors.
 
 @deftogether[(@defidform[#:kind "interface" gen:applicative]
               @defproc[(applicative? [v any/c]) boolean?]
@@ -110,6 +159,37 @@ A contract that accepts boxed values awaiting coercion into a concrete type of @
 functor}. Ideally, you should never need to use this function, but sometimes values cannot be
 immediately coerced, so this can be needed.}
 
+@subsubsection[#:tag "custom-applicatives"]{Implementing new applicative functors}
+
+Implementing your own applicative functors is somewhat more complicated than implementing plain
+functors. You must implement two methods, named @racket[pure] and @racket[apply]. The former,
+@emph{unlike} the @racket[pure] function exported by @racketmodname[data/applicative], should be a
+function of @emph{two} arguments, the first of which should be ignored. This is necessary in order to
+properly perform dynamic dispatch with @racketmodname[racket/generic], since some value must exist to
+be dispatched on. The first argument is therefore the value being used for dispatch, but there is no
+guarantee about what it is, so you should always ignore it completely.
+
+Implementing the @racket[apply] method is somewhat more straightforward. It should be a function of
+two arguments, this first corresponding to the functor in application position and second a list of
+functors provided as arguments in the application.
+
+Here is an example implementation of the most trivial possible applicative functor, the identity
+functor:
+
+@(functional-interaction
+  (require (prefix-in base: racket/base))
+  (struct id (val)
+    #:transparent
+    #:methods gen:functor
+    [(define (map f x)
+       (id (f (id-val x))))]
+    #:methods gen:applicative
+    [(define (pure _ x)
+       (id x))
+     (define (apply f xs)
+       (base:apply (id-val f) (base:map id-val xs)))])
+  ((id +) (pure 2) (pure 3)))
+
 @subsection[#:tag "monads"]{Monads}
 
 @defmodule[data/monad]
@@ -126,6 +206,22 @@ Monads can be used to control sequencing of computation in a very flexible way.
 Using the @racket[chain] function directly can become tedious and hard to read beyond a couple of
 nested applications, so the @racket[do] form is provided to make sequencing monadic operations more
 pleasant to read and write.
+
+Like functors and applicative functors, monads have their own set of @deftech{monad laws} which all
+implementations of @racket[gen:monad] must conform to:
+
+@nested[
+ #:style 'inset
+ @itemlist[
+  #:style 'ordered
+  @item{@racket[(chain _f (pure _x))] must be equivalent to @racket[(_f _x)].}
+  @item{@racket[(chain pure _x)] must be equivalent to @racket[_x].}
+  @item{@racket[(chain (λ (y) (chain _g (_f y))) _x)] must be equivalent to
+        @racket[(chain _g (chain _f _x))].}]]
+
+Most reasonable definitions of a monad will satisfy these laws already, but it is possible to write an
+implementation that does not, and there is no guarantee that functions in this library will work
+predictably on unlawful monads.
 
 @deftogether[(@defidform[#:kind "interface" gen:monad]
               @defproc[(monad? [v any/c]) boolean?]
@@ -237,6 +333,32 @@ to right and returns the results as a single monadic value.
         nothing))
   (map/m ascii->char '(76 33))
   (map/m ascii->char '(76 -5 33)))}
+
+@subsubsection[#:tag "custom-monads"]{Implementing new monads}
+
+Implementing your own monads is no more complicated than implementing your own applicative functors,
+you just need to provide an implementation of @racket[chain] that satisfies the @tech{monad laws}.
+
+Here is an example implementation of the most trivial possible monad, the identity monad:
+
+@(functional-interaction
+  (require (prefix-in base: racket/base))
+  (struct id (val)
+    #:transparent
+    #:methods gen:functor
+    [(define (map f x)
+       (id (f (id-val x))))]
+    #:methods gen:applicative
+    [(define (pure _ x)
+       (id x))
+     (define (apply f xs)
+       (base:apply (id-val f) (base:map id-val xs)))]
+    #:methods gen:monad
+    [(define (chain f x)
+       (f (id-val x)))])
+  (do [x <- (id 1)]
+      [y <- (id 2)]
+      (pure (+ x y))))
 
 @section[#:tag "data-types" #:style 'toc]{Data types}
 
