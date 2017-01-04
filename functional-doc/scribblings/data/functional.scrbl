@@ -293,7 +293,7 @@ definitions do not produce new @racket[chain] calls, they simply create new bind
        (define (prettify a b) (~a a ": " b))
        (pure (prettify y z)))))
 
-Internal defintions defined within @racket[do] blocks may refer to all previous bindings, but not
+Internal definitions defined within @racket[do] blocks may refer to all previous bindings, but not
 subsequent ones. However, multiple internal definitions directly next to one another may be mutually
 recursive, so long as they are not separated by a @racket[chain].
 
