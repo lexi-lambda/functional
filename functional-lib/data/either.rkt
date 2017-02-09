@@ -1,6 +1,7 @@
 #lang curly-fn racket/base
 
 (require racket/require
+         racket/serialize
          (prefix-in c: data/collection)
          (multi-in data [functor applicative monad maybe])
          (multi-in racket [contract generic match])
@@ -21,7 +22,7 @@
 (define (either? x)
   (or (success? x) (failure? x)))
 
-(struct success (value)
+(serializable-struct success (value)
   #:transparent
   #:methods gen:functor
   [(define (map f x)
@@ -36,7 +37,7 @@
   [(define (chain f x)
      (f (success-value x)))])
 
-(struct failure (value)
+(serializable-struct failure (value)
   #:transparent
   #:methods gen:functor
   [(define (map f x) x)]

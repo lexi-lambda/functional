@@ -507,7 +507,9 @@ single line of explicit error handling code.
               @defproc[(just? [v any/c]) boolean?]
               @defproc[(nothing? [v any/c]) boolean?])]{
 Value constructors and predicates for @tech{optional values}. The @racket[just] function produces a
-boxed value, and the @racket[nothing] value represents the absence of a value.
+boxed value, and the @racket[nothing] value represents the absence of a value. Optional values
+can be serialized with @racketmodname[racket/serialize] (as long as any nested value is
+serializable).
 
 @(functional-interaction
   (just 'hello)
@@ -672,7 +674,8 @@ using @tech{either}.
               @defproc[(failure? [v any/c]) boolean?])]{
 Value constructors and predicates for @tech{either}, which are tagged @tech{optional values}. The
 @racket[success] function produces a successful value, and the @racket[failure] constructor creates a
-value that represents failure.
+value that represents failure. Success and failure values can be serialized using
+ @racketmodname[racket/serialize] as long as the inner values are serializable.
 
 @(functional-interaction
   (success 'hello)

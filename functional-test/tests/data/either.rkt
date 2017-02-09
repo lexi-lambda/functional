@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require racket/require
+         racket/serialize
          (multi-in data [functor applicative monad maybe either])
          rackunit
          rackunit/spec)
@@ -96,3 +97,11 @@
 
   (it "converts failure values to success values"
     (check-equal? (flip-either (failure 'x)) (success 'x))))
+
+(check-equal? (success 12)
+              (deserialize (serialize (success 12)))
+              "success is serializable")
+
+(check-equal? (failure 12)
+              (deserialize (serialize (failure 12)))
+              "failure is serializable")
