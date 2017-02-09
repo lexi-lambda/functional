@@ -1,11 +1,16 @@
 #lang racket/base
 
 (require racket/require
+         racket/serialize
          (multi-in data [functor applicative monad maybe either])
          rackunit
          rackunit/spec)
 
 (describe "either"
+  (it "is serializable"
+    (check-equal? (deserialize (serialize (success 12))) (success 12))
+    (check-equal? (deserialize (serialize (failure 12))) (failure 12)))
+
   (describe "map"
     (it "maps over the internal value for success"
       (check-equal? (map add1 (success 12)) (success 13)))

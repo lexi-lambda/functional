@@ -3,7 +3,7 @@
 (require racket/require
          (prefix-in c: data/collection)
          (multi-in data [functor applicative monad])
-         (multi-in racket [contract function generic match])
+         (multi-in racket [contract function generic match serialize])
          (for-syntax racket/base
                      syntax/parse))
 
@@ -21,7 +21,7 @@
 (define (maybe? x)
   (or (just? x) (nothing? x)))
 
-(struct just (value)
+(serializable-struct just (value)
   #:transparent
   #:methods gen:functor
   [(define (map f x)
@@ -40,6 +40,12 @@
 (define nothing-value
   (let ()
     (struct nothing ()
+      #:property prop:serializable
+      (make-serialize-info (λ _ #())
+                           #`deserialize-info:nothing-v0
+                           #f
+                           (or (current-load-relative-directory)
+                               (current-directory)))
       #:methods gen:custom-write
       [(define (write-proc x out mode)
          (display "#<nothing>" out))]
@@ -53,6 +59,12 @@
       [(define (chain f x) nothing-value)])
     (define nothing-value (nothing))
     nothing-value))
+
+(define deserialize-info:nothing-v0
+  (make-deserialize-info (λ _ nothing-value)
+                         (λ _ (error '|nothing: can't have cycles|))))
+(module+ deserialize-info
+  (provide deserialize-info:nothing-v0))
 
 (define-match-expander nothing
   (syntax-parser [(_)        #'(== nothing-value)])

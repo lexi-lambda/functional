@@ -1,12 +1,17 @@
 #lang curly-fn racket/base
 
 (require racket/require
+         racket/serialize
          (multi-in data [functor applicative monad maybe])
          racket/match
          rackunit
          rackunit/spec)
 
 (describe "maybe"
+  (it "is serializable"
+    (check-eq? (deserialize (serialize nothing)) nothing)
+    (check-equal? (deserialize (serialize (just 3))) (just 3)))
+
   (describe "map"
     (it "maps over the internal value for just"
       (check-equal? (map add1 (just 12)) (just 13)))
