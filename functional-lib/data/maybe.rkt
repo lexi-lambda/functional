@@ -1,6 +1,7 @@
 #lang curly-fn racket/base
 
 (require racket/require
+         racket/serialize
          (prefix-in c: data/collection)
          (multi-in data [functor applicative monad])
          (multi-in racket [contract function generic match serialize])

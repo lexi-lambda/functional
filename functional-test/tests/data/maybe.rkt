@@ -97,3 +97,11 @@
 
   (it "wraps successful computations in just"
     (check-equal? (try-bytes->string/utf-8 #"hello") (just "hello"))))
+
+(check-pred nothing?
+            (deserialize (serialize (nothing)))
+            "nothing deserializes to itself")
+
+(check-equal? (just 3)
+              (deserialize (serialize (just 3)))
+              "just is serializable")
