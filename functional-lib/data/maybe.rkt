@@ -73,8 +73,11 @@
 
 (define nothing? #{eq? nothing})
 
-(define (maybe/c val/c)
-  (or/c nothing? (struct/c just val/c)))
+(define/subexpression-pos-prop (maybe/c val/c)
+  (let ([val/c (coerce-contract 'maybe/c val/c)])
+    (rename-contract
+     (or/c nothing? (struct/c just val/c))
+     (build-compound-type-name 'maybe/c val/c))))
 
 (define/match (maybe x f m)
   [(_ f (just x))  (f x)]
