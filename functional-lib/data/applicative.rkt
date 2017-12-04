@@ -11,9 +11,9 @@
                      syntax/parse))
 
 (provide gen:applicative applicative? applicative/c
+         pure/c
          (rename-out [delayed-pure pure]
-                     [delayed-pure? pure?]
-                     [delayed-pure/c pure/c]))
+                     [delayed-pure? pure?]))
 
 (require racket/trace)
 
@@ -79,5 +79,8 @@
   [(define (chain f x)
      (f (delayed-pure-value x)))])
 
-(define (delayed-pure/c ctc)
-  (struct/c delayed-pure ctc))
+(define/subexpression-pos-prop (pure/c ctc)
+  (let ([ctc (coerce-contract 'pure/c ctc)])
+    (rename-contract
+     (struct/c delayed-pure ctc)
+     (build-compound-type-name 'pure/c ctc))))

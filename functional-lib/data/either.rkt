@@ -46,9 +46,13 @@
   #:methods gen:monad
   [(define (chain f x) x)])
 
-(define (either/c failure/c success/c)
-  (or/c (struct/c failure failure/c)
-        (struct/c success success/c)))
+(define/subexpression-pos-prop (either/c failure/c success/c)
+  (let ([failure/c (coerce-contract 'either/c failure/c)]
+        [success/c (coerce-contract 'either/c success/c)])
+    (rename-contract
+     (or/c (struct/c failure failure/c)
+           (struct/c success success/c))
+     (build-compound-type-name 'either/c failure/c success/c))))
 
 (define/match (either g f m)
   [(_ f (success x)) (f x)]
