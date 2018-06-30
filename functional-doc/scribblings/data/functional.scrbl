@@ -651,12 +651,12 @@ using @tech{either}.
   (define (safe-first lst)
     (if (empty? lst)
         (failure "attempted to get the first element of an empty list")
-        (just (first lst))))
+        (success (first lst))))
 
   (define (safe-rest lst)
      (if (empty? lst)
          (failure "attempted to get the rest of an empty list")
-         (just (rest lst))))
+         (success (rest lst))))
 
   (define (divide-first-two lst)
     (do [a  <- (safe-first lst)]
