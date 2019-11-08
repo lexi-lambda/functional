@@ -369,7 +369,7 @@ Here is an example implementation of the most trivial possible monad, the identi
 @defmodule[data/maybe]
 
 The @emph{maybe} pattern implements @deftech{optional values}, values that represent computations that
-can fail. Idiomatic Scheme uses @racket[#f] to represent a “lack of a value”, similar to now @tt{null}
+can fail. Idiomatic Scheme uses @racket[#f] to represent a “lack of a value”, similar to how @tt{null}
 is used in other programming languages, but this exhibits a few problems:
 
 @itemlist[
