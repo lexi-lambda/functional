@@ -171,7 +171,7 @@ guarantee about what it is, so you should always ignore it completely.
 
 Implementing the @racket[apply] method is somewhat more straightforward. It should be a function of
 two arguments, this first corresponding to the functor in application position and second a list of
-functors provided as arguments in the application. It shoud produce an applicative functor result.
+functors provided as arguments in the application. It should produce an applicative functor result.
 
 Here is an example implementation of the most trivial possible applicative functor, the identity
 functor:
