@@ -8,6 +8,6 @@
   '(["base" #:version "6.3"]
     ["collections-lib" #:version "1.3"]
     "curly-fn-lib"
-    "static-rename"))
+    "static-rename-lib"))
 (define build-deps
   '())
