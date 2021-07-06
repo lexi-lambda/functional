@@ -14,6 +14,7 @@
   ([c:sequence? (define map c:map)]))
 
 (define/renamed map (variadic-map f . args)
-  (if (c:sequence? (first args))
+  (if (and (c:sequence? (first args))
+           (not (empty? (rest args))))
       (apply c:map f args)
       (apply map f args)))
